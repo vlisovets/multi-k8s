@@ -1,0 +1,22 @@
+sudo: required
+service:
+  - docker
+
+before_install:
+  - docker build -t vlisovets/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run vlisovets/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t vlisovets/multi-client ./client
+  - docker build -t vlisovets/multi-nginx ./nginx
+  - docker build -t vlisovets/multi-server ./server
+  - docker build -t vlisovets/multi-worker ./worker
+
+- echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+- docker push vlisovets/multi-client
+- docker push vlisovets/multi-nginx
+- docker push vlisovets/multi-server
+- docker push vlisovets/multi-worker
